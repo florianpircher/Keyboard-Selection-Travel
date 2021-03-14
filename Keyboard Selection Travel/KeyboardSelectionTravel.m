@@ -28,7 +28,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         BOOL isExpandingTravel = flags == (NSEventModifierFlagControl|NSEventModifierFlagShift);
         
         if (isTravel || isExpandingTravel) {
-            switch ([[event charactersIgnoringModifiers] characterAtIndex:0]) {
+            switch ([event.charactersIgnoringModifiers characterAtIndex:0]) {
             case NSUpArrowFunctionKey:
                 [self travel:KSTTravelUp];
                 return nil;
@@ -50,34 +50,34 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 
 - (void)travel:(KSTTravel)travel {
     GSDocument *document = [(GSApplication *)NSApp currentFontDocument];
-    GSFont *font = [document font];
+    GSFont *font = document.font;
     
     if (font == nil) {
         return;
     }
     
-    CGFloat upm = [font unitsPerEm];
-    NSWindowController<GSWindowControllerProtocol> *windowController = [document windowController];
-    NSViewController<GSGlyphEditViewControllerProtocol> *editViewController = [windowController activeEditViewController];
-    GSLayer *activeLayer = [editViewController activeLayer];
-    NSMutableOrderedSet<GSSelectableElement*> *selection = [activeLayer selection];
+    CGFloat upm = font.unitsPerEm;
+    NSWindowController<GSWindowControllerProtocol> *windowController = document.windowController;
+    NSViewController<GSGlyphEditViewControllerProtocol> *editViewController = windowController.activeEditViewController;
+    GSLayer *activeLayer = editViewController.activeLayer;
+    NSMutableOrderedSet<GSSelectableElement*> *selection = activeLayer.selection;
     
     if (selection == nil) {
         return;
     }
     
-    NSMutableArray<KSTCandidate *> *candidates = [NSMutableArray arrayWithCapacity:[selection count]];
+    NSMutableArray<KSTCandidate *> *candidates = [NSMutableArray arrayWithCapacity:selection.count];
     
-    for (int i = 0; i < [selection count]; i++) {
+    for (int i = 0; i < selection.count; i++) {
         KSTCandidate *candidate = [KSTCandidate new];
-        [candidate setDistance:CGFLOAT_MAX];
-        [candidate setElement:nil];
+        candidate.distance = CGFLOAT_MAX;
+        candidate.element = nil;
         [candidates addObject:candidate];
     }
     
-    for (GSPath *path in [activeLayer paths]) {
-        for (GSNode *node in [path nodes]) {
-            for (int i = 0; i < [selection count]; i++) {
+    for (GSPath *path in activeLayer.paths) {
+        for (GSNode *node in path.nodes) {
+            for (int i = 0; i < selection.count; i++) {
                 GSShape *s = (GSShape *)[selection objectAtIndex:i];
                 
                 if ([node isEqualTo:s]) {
@@ -87,9 +87,9 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
                 CGFloat distance = [self distanceFrom:s to:node atScale:upm withTravel:travel];
                 KSTCandidate *c = [candidates objectAtIndex:i];
                 
-                if (distance < [c distance]) {
-                    [c setDistance:distance];
-                    [c setElement:node];
+                if (distance < c.distance) {
+                    c.distance = distance;
+                    c.element = node;
                 }
             }
         }
@@ -97,7 +97,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     
     NSMutableOrderedSet<GSSelectableElement *> *newSelection = [NSMutableOrderedSet new];
     
-    for (int i = 0; i < [candidates count]; i++) {
+    for (int i = 0; i < candidates.count; i++) {
         KSTCandidate *c = [candidates objectAtIndex:i];
         
         GSSelectableElement *element;
@@ -105,7 +105,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         if ([c element] == nil) {
             element = [selection objectAtIndex:i];
         } else {
-            element = [c element];
+            element = c.element;
         }
         
         [newSelection addObject:element];
