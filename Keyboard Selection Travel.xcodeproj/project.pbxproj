@@ -6,9 +6,22 @@
 	objectVersion = 50;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		179DC14025FD0350009A1DDB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 179DC13F25FD0350009A1DDB /* Cocoa.framework */; };
+		179DC14225FD0363009A1DDB /* GlyphsCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 179DC14125FD0363009A1DDB /* GlyphsCore.framework */; };
+		179DC14925FD0409009A1DDB /* KeyboardSelectionTravel.m in Sources */ = {isa = PBXBuildFile; fileRef = 179DC14825FD0409009A1DDB /* KeyboardSelectionTravel.m */; };
+		179DC15A25FD3587009A1DDB /* KSTCandidate.m in Sources */ = {isa = PBXBuildFile; fileRef = 179DC15825FD3587009A1DDB /* KSTCandidate.m */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		179DC13425FD02D2009A1DDB /* Keyboard Selection Travel.glyphsPlugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Keyboard Selection Travel.glyphsPlugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		179DC13725FD02D2009A1DDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		179DC13F25FD0350009A1DDB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		179DC14125FD0363009A1DDB /* GlyphsCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GlyphsCore.framework; path = "../../../../../Applications/Glyphs 3.app/Contents/Frameworks/GlyphsCore.framework"; sourceTree = "<group>"; };
+		179DC14725FD0409009A1DDB /* KeyboardSelectionTravel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KeyboardSelectionTravel.h; sourceTree = "<group>"; };
+		179DC14825FD0409009A1DDB /* KeyboardSelectionTravel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KeyboardSelectionTravel.m; sourceTree = "<group>"; };
+		179DC15825FD3587009A1DDB /* KSTCandidate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KSTCandidate.m; sourceTree = "<group>"; };
+		179DC15925FD3587009A1DDB /* KSTCandidate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KSTCandidate.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -16,6 +29,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				179DC14225FD0363009A1DDB /* GlyphsCore.framework in Frameworks */,
+				179DC14025FD0350009A1DDB /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -27,6 +42,7 @@
 			children = (
 				179DC13625FD02D2009A1DDB /* Keyboard Selection Travel */,
 				179DC13525FD02D2009A1DDB /* Products */,
+				179DC13E25FD0350009A1DDB /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -42,8 +58,21 @@
 			isa = PBXGroup;
 			children = (
 				179DC13725FD02D2009A1DDB /* Info.plist */,
+				179DC14725FD0409009A1DDB /* KeyboardSelectionTravel.h */,
+				179DC14825FD0409009A1DDB /* KeyboardSelectionTravel.m */,
+				179DC15925FD3587009A1DDB /* KSTCandidate.h */,
+				179DC15825FD3587009A1DDB /* KSTCandidate.m */,
 			);
 			path = "Keyboard Selection Travel";
+			sourceTree = "<group>";
+		};
+		179DC13E25FD0350009A1DDB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				179DC14125FD0363009A1DDB /* GlyphsCore.framework */,
+				179DC13F25FD0350009A1DDB /* Cocoa.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +141,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				179DC15A25FD3587009A1DDB /* KSTCandidate.m in Sources */,
+				179DC14925FD0409009A1DDB /* KeyboardSelectionTravel.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -155,6 +186,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(SYSTEM_APPS_DIR)/Glyphs\\ 3.app/Contents/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -169,7 +201,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -214,6 +246,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(SYSTEM_APPS_DIR)/Glyphs\\ 3.app/Contents/Frameworks";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -222,7 +255,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
@@ -237,6 +270,7 @@
 				DEVELOPMENT_TEAM = FQ2KWJJUPU;
 				INFOPLIST_FILE = "Keyboard Selection Travel/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.FlorianPircher.Keyboard-Selection-Travel";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -252,6 +286,7 @@
 				DEVELOPMENT_TEAM = FQ2KWJJUPU;
 				INFOPLIST_FILE = "Keyboard Selection Travel/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.FlorianPircher.Keyboard-Selection-Travel";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
