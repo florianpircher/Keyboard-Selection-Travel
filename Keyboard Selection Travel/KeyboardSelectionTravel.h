@@ -10,6 +10,7 @@
 #import <GlyphsCore/GSLayer.h>
 #import <GlyphsCore/GSProxyShapes.h>
 #import <GlyphsCore/GSPath.h>
+#import <GlyphsCore/GSAnchor.h>
 #import <GlyphsCore/GSWindowControllerProtocol.h>
 #import <GlyphsCore/GSGlyphViewControllerProtocol.h>
 #import <GlyphsCore/GlyphsPluginProtocol.h>

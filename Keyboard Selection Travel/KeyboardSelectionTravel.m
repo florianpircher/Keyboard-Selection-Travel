@@ -95,6 +95,26 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         }
     }
     
+    for (NSString *anchorName in activeLayer.anchors) {
+        GSAnchor *anchor = [activeLayer.anchors objectForKey:anchorName];
+        
+        for (int i = 0; i < selection.count; i++) {
+            GSShape *s = (GSShape *)[selection objectAtIndex:i];
+            
+            if ([anchor isEqualTo:s]) {
+                continue;
+            }
+            
+            CGFloat distance = [self distanceFrom:s to:anchor atScale:upm withTravel:travel];
+            KSTCandidate *c = [candidates objectAtIndex:i];
+            
+            if (distance < c.distance) {
+                c.distance = distance;
+                c.element = anchor;
+            }
+        }
+    }
+    
     NSMutableOrderedSet<GSSelectableElement *> *newSelection = [NSMutableOrderedSet new];
     
     for (int i = 0; i < candidates.count; i++) {
