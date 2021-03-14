@@ -15,10 +15,14 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>0.1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright 2021 Florian Pircher</string>
 	<key>NSPrincipalClass</key>
 	<string>KeyboardSelectionTravel</string>
+	<key>productPageURL</key>
+	<string>https://florianpircher.com/glyphs/plugins/keyboard-selection-travel</string>
 </dict>
 </plist>
