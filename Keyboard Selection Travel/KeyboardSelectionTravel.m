@@ -23,7 +23,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 
 - (void)loadPlugin {
     [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown handler:^NSEvent * _Nullable(NSEvent * _Nonnull event) {
-        NSUInteger flags = [event modifierFlags] & kEventModifierKeyFlagsMask;
+        NSUInteger flags = event.modifierFlags & kEventModifierKeyFlagsMask;
         BOOL isTravel = flags == NSEventModifierFlagControl;
         BOOL isExpandingTravel = flags == (NSEventModifierFlagControl|NSEventModifierFlagShift);
         
@@ -122,7 +122,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         
         GSSelectableElement *element;
         
-        if ([c element] == nil) {
+        if (c.element == nil) {
             element = [selection objectAtIndex:i];
         } else {
             element = c.element;
