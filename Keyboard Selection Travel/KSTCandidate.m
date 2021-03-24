@@ -8,6 +8,7 @@
 #import "KSTCandidate.h"
 
 @implementation KSTCandidate
+
 @synthesize distance;
 @synthesize element;
 
@@ -20,4 +21,5 @@
 {
     return [NSString stringWithFormat:@"<%@: %p> %f", [self class], self, distance];
 }
+
 @end

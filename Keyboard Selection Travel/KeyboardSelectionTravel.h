@@ -40,7 +40,6 @@ const NSUInteger kEventModifierKeyFlagsMask = NSEventModifierFlagShift|NSEventMo
 @end
 
 @interface KeyboardSelectionTravel : NSObject<GlyphsPlugin>
-
 @end
 
 NS_ASSUME_NONNULL_END
