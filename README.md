@@ -15,13 +15,45 @@ Relaunch Glyphs for the plugin to be loaded.
 ## Usage
 
 Hold down the Control key on your keyboard and press an arrow key.
-If you press Up, Keyboard Selection Travel searches for the closest point above the selected point.
+If you press Up, Keyboard Selection Travel searches for the closest point above the selected point.
 If there is such a point, it is selected; otherwise, the selection does not change.
 The same goes for moving the selection downwards, to the right, or the left.
 
-Keyboard Selection Travel can select on-curve points, off-curve points, and anchors.
+Keyboard Selection Travel can select on-curve points, off-curve points, and anchors.
 
 If multiple points are selected, Keyboard Selection Travel will move all selections independently.
+
+## Troubleshooting
+
+Make sure to restart Glyphs after installing Keyboard Selection Travel for the plugin to be loaded.
+
+In some cases pressing the arrow keys while holding down Control might still not work. This is bacause the Control-Up/Down/Left/Right shortcuts are used by the system (typically to move to a different space or to activate Mission Control) or by some other app.
+
+To fix this, deactivate the other shortcuts. If you want to keep them, you can also change the Keyboard Selection Travel shortcuts to Control-**Shift**-Up/Down/Left/Right by enabeling the `UseAlternativeShortcuts` preference.
+
+<details>
+<summary>Set Preferences from the Command Line</summary>
+Run the following line to set the preference to `YES` (or `NO` to deactivate).
+
+```
+defaults write com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts YES
+```
+</details>
+
+<details>
+<summary>Set Preferences from Glyphs’ Macro Panel</summary>
+Run the following line to set the preference to `True` (or `False` to deactivate).
+
+```
+Glyphs.boolDefaults["com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts"] = True
+```
+</details>
+
+<details>
+<summary>Set Preferences using mekkablue’s scripts</summary>
+
+Select *Script* → *mekkablue* → *App* → *Set Hidden App Preferences*. Enter `com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts`), set the value to `YES` (or `NO` to deactivate), and confirm with *Apply*.
+</details>
 
 ## How does it work?
 
