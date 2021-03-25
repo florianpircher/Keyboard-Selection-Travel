@@ -8,6 +8,9 @@
 #import "KeyboardSelectionTravel.h"
 #import "KSTCandidate.h"
 
+/// User default preferences key whether to use Control-Shift instead of Control.
+static NSString * const kUseAlternativeShortcutsKey = @"com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts";
+
 typedef NS_ENUM(NSUInteger, KSTTravel) {
     KSTTravelUp,
     KSTTravelDown,
@@ -24,10 +27,17 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 - (void)loadPlugin {
     [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown handler:^NSEvent * _Nullable(NSEvent * _Nonnull event) {
         NSUInteger flags = event.modifierFlags & kEventModifierKeyFlagsMask;
-        BOOL isTravel = flags == NSEventModifierFlagControl;
-        BOOL isExpandingTravel = flags == (NSEventModifierFlagControl|NSEventModifierFlagShift);
         
-        if (isTravel || isExpandingTravel) {
+        // standard shortcuts are Control with the Up/Down/Left/Right arow keys
+        BOOL isTravel = flags == NSEventModifierFlagControl;
+        
+        // in case the alternative shortcuts are enabled, check for them, too
+        if ([NSUserDefaults.standardUserDefaults boolForKey:kUseAlternativeShortcutsKey]) {
+            // alternative shortcuts are Control-Shift with the Up/Down/Left/Right arow keys
+            isTravel |= flags == (NSEventModifierFlagControl|NSEventModifierFlagShift);
+        }
+        
+        if (isTravel) {
             switch ([event.charactersIgnoringModifiers characterAtIndex:0]) {
             case NSUpArrowFunctionKey:
                 [self travel:KSTTravelUp];
@@ -66,8 +76,14 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         return;
     }
     
+    // candidates are points which might be the travel target
     NSMutableArray<KSTCandidate *> *candidates = [NSMutableArray arrayWithCapacity:selection.count];
     
+    // populate `candidates` with all points of the current selection
+    // in case no target is found, the current selection kept
+    // set `element` to `nil` to indicate “no change”
+    // set distance to max so other points have a chance to become target
+    // the current selection points are placed first in `candidates` so they are picked in case all other candidates also have max distance
     for (int i = 0; i < selection.count; i++) {
         KSTCandidate *candidate = [KSTCandidate new];
         candidate.distance = CGFLOAT_MAX;
@@ -75,12 +91,14 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         [candidates addObject:candidate];
     }
     
+    // evaluate all points
     for (GSPath *path in activeLayer.paths) {
         for (GSNode *node in path.nodes) {
             for (int i = 0; i < selection.count; i++) {
                 GSShape *s = (GSShape *)[selection objectAtIndex:i];
                 
                 if ([node isEqualTo:s]) {
+                    // selected points are already stored in `candidates`
                     continue;
                 }
                 
@@ -95,6 +113,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         }
     }
     
+    // evaluate all anchors
     for (NSString *anchorName in activeLayer.anchors) {
         GSAnchor *anchor = [activeLayer.anchors objectForKey:anchorName];
         
@@ -102,6 +121,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
             GSShape *s = (GSShape *)[selection objectAtIndex:i];
             
             if ([anchor isEqualTo:s]) {
+                // selected points are already stored in `candidates`
                 continue;
             }
             
@@ -115,6 +135,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         }
     }
     
+    // the elements to select
     NSMutableOrderedSet<GSSelectableElement *> *newSelection = [NSMutableOrderedSet new];
     
     for (int i = 0; i < candidates.count; i++) {
@@ -123,8 +144,10 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         GSSelectableElement *element;
         
         if (c.element == nil) {
+            // no target was found, keep current selection
             element = [selection objectAtIndex:i];
         } else {
+            // select the new target element
             element = c.element;
         }
         
@@ -157,7 +180,9 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     CGFloat dy = fabs(y1 - y2);
     
     BOOL isVertical = travel == KSTTravelUp || travel == KSTTravelDown;
+    // primary delta
     CGFloat dp = isVertical ? dy : dx;
+    // secondary delta
     CGFloat ds = isVertical ? dx : dy;
     
     CGFloat distance = -atan2(dp, ds / 4) + dp + ds;
