@@ -48,8 +48,9 @@ The distance function used by this plugin can be visualized like so:
 
 ![](Distances.png)
 
-This is the visualization for left-right movement; up-down movement would like the same but rotated by 90 degrees.
-The currently selected node is placed in the center, and all other points are evaluated with respect to this center.
+This is the visualization for left-right movement; up-down movement would look the same but rotated by 90 degrees.
+The currently selected node is placed in the center.
+All other points are evaluated with respect to this center.
 Closer points are brighter; points further aways are drawn darker.
 
 As you can see, points on the same x-axis as the selected point are particularly bright.
