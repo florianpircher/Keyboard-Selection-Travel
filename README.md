@@ -33,6 +33,7 @@ To fix this, deactivate the other shortcuts. If you want to keep them, you can a
 
 <details>
 <summary>Set Preferences from the Command Line</summary>
+
 Run the following line to set the preference to `YES` (or `NO` to deactivate).
 
 ```
@@ -42,6 +43,7 @@ defaults write com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Tr
 
 <details>
 <summary>Set Preferences from Glyphs’ Macro Panel</summary>
+
 Run the following line to set the preference to `True` (or `False` to deactivate).
 
 ```
@@ -85,7 +87,7 @@ The currently selected node is placed in the center.
 All other points are evaluated with respect to this center.
 Closer points are brighter; points further aways are drawn darker.
 
-As you can see, points on the same x-axis as the selected point are particularly bright.
+As you can see, points on the same hight as the selected point are particularly bright.
 Still, the brightness tapers off into the distance, giving closer points with a bit more deviation from the main axis a chance.
 
 Such a distance function can never be perfect, and I will happily engage in proposals for better distance functions.
