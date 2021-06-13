@@ -162,13 +162,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
                     continue;
                 }
                 
-                CGFloat distance = [self distanceFrom:s to:node atScale:upm withTravel:travel];
-                KSTCandidate *c = [candidates objectAtIndex:i];
-                
-                if (distance < c.distance) {
-                    c.distance = distance;
-                    c.element = node;
-                }
+                [self evaluateCandidate:[candidates objectAtIndex:i] fromOrigin:s toTarget:node atScale:upm withTravel:travel];
             }
         }
     }
@@ -185,13 +179,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
                 continue;
             }
             
-            CGFloat distance = [self distanceFrom:s to:anchor atScale:upm withTravel:travel];
-            KSTCandidate *c = [candidates objectAtIndex:i];
-            
-            if (distance < c.distance) {
-                c.distance = distance;
-                c.element = anchor;
-            }
+            [self evaluateCandidate:[candidates objectAtIndex:i] fromOrigin:s toTarget:anchor atScale:upm withTravel:travel];
         }
     }
     
@@ -217,6 +205,19 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     [activeLayer setSelection:newSelection];
     
     return YES;
+}
+
+- (void)evaluateCandidate:(KSTCandidate *)candidate
+               fromOrigin:(GSShape *)origin
+                 toTarget:(GSElement *)target
+                  atScale:(CGFloat)scale
+               withTravel:(KSTTravel)travel {
+    CGFloat distance = [self distanceFrom:origin to:target atScale:scale withTravel:travel];
+    
+    if (distance < candidate.distance) {
+        candidate.distance = distance;
+        candidate.element = target;
+    }
 }
 
 - (CGFloat)distanceFrom:(GSShape *)s1 to:(GSShape *)s2 atScale:(CGFloat)scale withTravel:(KSTTravel)travel {
