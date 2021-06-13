@@ -18,6 +18,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import <GlyphsCore/GSCallbackHandler.h>
 #import <GlyphsCore/GSFont.h>
 #import <GlyphsCore/GSLayer.h>
 #import <GlyphsCore/GSProxyShapes.h>
