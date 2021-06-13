@@ -155,14 +155,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     for (GSPath *path in activeLayer.paths) {
         for (GSNode *node in path.nodes) {
             for (int i = 0; i < selection.count; i++) {
-                GSShape *s = (GSShape *)[selection objectAtIndex:i];
-                
-                if ([node isEqualTo:s]) {
-                    // selected points are already stored in `candidates`
-                    continue;
-                }
-                
-                [self evaluateCandidate:[candidates objectAtIndex:i] fromOrigin:s toTarget:node atScale:upm withTravel:travel];
+                [self evaluateCandidate:candidates[i] fromOrigin:(GSShape *)selection[i] toTarget:node atScale:upm withTravel:travel];
             }
         }
     }
@@ -172,14 +165,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         GSAnchor *anchor = [activeLayer.anchors objectForKey:anchorName];
         
         for (int i = 0; i < selection.count; i++) {
-            GSShape *s = (GSShape *)[selection objectAtIndex:i];
-            
-            if ([anchor isEqualTo:s]) {
-                // selected points are already stored in `candidates`
-                continue;
-            }
-            
-            [self evaluateCandidate:[candidates objectAtIndex:i] fromOrigin:s toTarget:anchor atScale:upm withTravel:travel];
+            [self evaluateCandidate:candidates[i] fromOrigin:(GSShape *)selection[i] toTarget:anchor atScale:upm withTravel:travel];
         }
     }
     
@@ -187,13 +173,13 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     NSMutableOrderedSet<GSSelectableElement *> *newSelection = [NSMutableOrderedSet new];
     
     for (int i = 0; i < candidates.count; i++) {
-        KSTCandidate *c = [candidates objectAtIndex:i];
+        KSTCandidate *c = candidates[i];
         
         GSSelectableElement *element;
         
         if (c.element == nil) {
             // no target was found, keep current selection
-            element = [selection objectAtIndex:i];
+            element = selection[i];
         } else {
             // select the new target element
             element = c.element;
@@ -212,6 +198,10 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
                  toTarget:(GSElement *)target
                   atScale:(CGFloat)scale
                withTravel:(KSTTravel)travel {
+    if ([origin isEqualTo:target]) {
+        return;
+    }
+    
     CGFloat distance = [self distanceFrom:origin to:target atScale:scale withTravel:travel];
     
     if (distance < candidate.distance) {
