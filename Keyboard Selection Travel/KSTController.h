@@ -1,5 +1,5 @@
 //
-//  KeyboardSelectionTravel.h
+//  KSTController.h
 //  Keyboard Selection Travel
 //
 //  Copyright 2021 Florian Pircher
@@ -29,6 +29,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+/// User default preferences key whether to use Control-Shift instead of Control.
+static NSString * const kUseAlternativeShortcutsKey = @"com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts";
+/// Set of tools class names for which this plugin will be disabled.
+static NSString * const kIgnoreToolsKey = @"com.FlorianPircher.Keyboard-Selection-Travel.IgnoreTools";
+
 const NSUInteger kEventModifierKeyFlagsMask = NSEventModifierFlagShift|NSEventModifierFlagControl|NSEventModifierFlagOption|NSEventModifierFlagCommand;
 
 @interface GSApplication : NSApplication
@@ -40,7 +45,7 @@ const NSUInteger kEventModifierKeyFlagsMask = NSEventModifierFlagShift|NSEventMo
 @property (weak, nonatomic, nullable) NSWindowController<GSWindowControllerProtocol> *windowController;
 @end
 
-@interface KeyboardSelectionTravel : NSObject<GlyphsPlugin>
+@interface KSTController : NSObject<GlyphsPlugin>
 @end
 
 NS_ASSUME_NONNULL_END

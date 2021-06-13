@@ -1,5 +1,5 @@
 //
-//  Keyboard Selection Travel.m
+//  KSTController.m
 //  Keyboard Selection Travel
 //
 //  Copyright 2021 Florian Pircher
@@ -17,11 +17,8 @@
 //  limitations under the License.
 //
 
-#import "KeyboardSelectionTravel.h"
+#import "KSTController.h"
 #import "KSTCandidate.h"
-
-/// User default preferences key whether to use Control-Shift instead of Control.
-static NSString * const kUseAlternativeShortcutsKey = @"com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts";
 
 typedef NS_ENUM(NSUInteger, KSTTravel) {
     KSTTravelUp,
@@ -30,13 +27,40 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     KSTTravelRight,
 };
 
-@implementation KeyboardSelectionTravel
+@interface KSTController ()
+@property (nonatomic, retain) NSSet *ignoreToolClassNameSet;
+@end
+
+@implementation KSTController
+
++ (void)initialize
+{
+    if (self == [KSTController class]) {
+        [NSUserDefaults.standardUserDefaults registerDefaults:@{
+            kUseAlternativeShortcutsKey: @NO,
+            kIgnoreToolsKey: @[@"GlyphsToolText"],
+        }];
+    }
+}
 
 - (NSUInteger)interfaceVersion {
     return 1;
 }
 
 - (void)loadPlugin {
+    NSArray<NSString *> *ignoreToolClassNames = [NSUserDefaults.standardUserDefaults arrayForKey:kIgnoreToolsKey];
+    NSMutableSet<NSString *> *ignoreToolClassNameSet = [NSMutableSet new];
+    
+    if (ignoreToolClassNames != nil) {
+        for (NSString *className in ignoreToolClassNames) {
+            if ([className isKindOfClass:[NSString class]]) {
+                [ignoreToolClassNameSet addObject:className];
+            }
+        }
+    }
+    
+    self.ignoreToolClassNameSet = ignoreToolClassNameSet;
+    
     [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown handler:^NSEvent * _Nullable(NSEvent * _Nonnull event) {
         NSUInteger flags = event.modifierFlags & kEventModifierKeyFlagsMask;
         
@@ -47,23 +71,6 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         if ([NSUserDefaults.standardUserDefaults boolForKey:kUseAlternativeShortcutsKey]) {
             // alternative shortcuts are Control-Shift with the Up/Down/Left/Right arow keys
             isTravel |= flags == (NSEventModifierFlagControl|NSEventModifierFlagShift);
-        }
-        
-        if (isTravel) {
-            switch ([event.charactersIgnoringModifiers characterAtIndex:0]) {
-            case NSUpArrowFunctionKey:
-                [self travel:KSTTravelUp];
-                return nil;
-            case NSDownArrowFunctionKey:
-                [self travel:KSTTravelDown];
-                return nil;
-            case NSLeftArrowFunctionKey:
-                [self travel:KSTTravelLeft];
-                return nil;
-            case NSRightArrowFunctionKey:
-                [self travel:KSTTravelRight];
-                return nil;
-            }
         }
         
         if (isTravel) {
@@ -82,39 +89,51 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 - (BOOL)travelForCharacter:(unichar)charachter {
     switch (charachter) {
     case NSUpArrowFunctionKey:
-        [self travel:KSTTravelUp];
-        return true;
+        return [self travel:KSTTravelUp];
     case NSDownArrowFunctionKey:
-        [self travel:KSTTravelDown];
-        return true;
+        return [self travel:KSTTravelDown];
     case NSLeftArrowFunctionKey:
-        [self travel:KSTTravelLeft];
-        return true;
+        return [self travel:KSTTravelLeft];
     case NSRightArrowFunctionKey:
-        [self travel:KSTTravelRight];
-        return true;
+        return [self travel:KSTTravelRight];
     default:
-        return false;
+        return NO;
     }
 }
 
-- (void)travel:(KSTTravel)travel {
+- (BOOL)travel:(KSTTravel)travel {
+    GSApplication *app = NSApp;
+    GSDocument *document = app.currentFontDocument;
     
-    GSDocument *document = [(GSApplication *)NSApp currentFontDocument];
+    if (document == nil) {
+        return NO;
+    }
+    
+    NSWindowController<GSWindowControllerProtocol> *windowController = document.windowController;
+    
+    if (windowController == nil || [windowController.window isNotEqualTo:app.keyWindow]) {
+        // Edit view must be in key window for plugin to apply
+        return NO;
+    }
+    
+    if ([self.ignoreToolClassNameSet containsObject:windowController.toolDrawDelegate.className]) {
+        // Control-Up/Down/Left/Right (with out without Shift) is already used by Text tool
+        return NO;
+    }
+    
     GSFont *font = document.font;
     
     if (font == nil) {
-        return;
+        return NO;
     }
     
     CGFloat upm = font.unitsPerEm;
-    NSWindowController<GSWindowControllerProtocol> *windowController = document.windowController;
     NSViewController<GSGlyphEditViewControllerProtocol> *editViewController = windowController.activeEditViewController;
     GSLayer *activeLayer = editViewController.activeLayer;
-    NSMutableOrderedSet<GSSelectableElement*> *selection = activeLayer.selection;
+    NSMutableOrderedSet<GSSelectableElement *> *selection = activeLayer.selection;
     
     if (selection == nil) {
-        return;
+        return NO;
     }
     
     // candidates are points which might be the travel target
@@ -196,6 +215,8 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     }
     
     [activeLayer setSelection:newSelection];
+    
+    return YES;
 }
 
 - (CGFloat)distanceFrom:(GSShape *)s1 to:(GSShape *)s2 atScale:(CGFloat)scale withTravel:(KSTTravel)travel {

@@ -7,19 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1702A10F26767E0900786AC6 /* GlyphsCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1702A10E26767E0900786AC6 /* GlyphsCore.framework */; };
 		179DC14025FD0350009A1DDB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 179DC13F25FD0350009A1DDB /* Cocoa.framework */; };
-		179DC14225FD0363009A1DDB /* GlyphsCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 179DC14125FD0363009A1DDB /* GlyphsCore.framework */; };
-		179DC14925FD0409009A1DDB /* KeyboardSelectionTravel.m in Sources */ = {isa = PBXBuildFile; fileRef = 179DC14825FD0409009A1DDB /* KeyboardSelectionTravel.m */; };
+		179DC14925FD0409009A1DDB /* KSTController.m in Sources */ = {isa = PBXBuildFile; fileRef = 179DC14825FD0409009A1DDB /* KSTController.m */; };
 		179DC15A25FD3587009A1DDB /* KSTCandidate.m in Sources */ = {isa = PBXBuildFile; fileRef = 179DC15825FD3587009A1DDB /* KSTCandidate.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1702A10E26767E0900786AC6 /* GlyphsCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GlyphsCore.framework; path = "/Applications/Glyphs 3.app/Contents/Frameworks/GlyphsCore.framework"; sourceTree = "<group>"; };
 		179DC13425FD02D2009A1DDB /* Keyboard Selection Travel.glyphsPlugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Keyboard Selection Travel.glyphsPlugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		179DC13725FD02D2009A1DDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		179DC13F25FD0350009A1DDB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
-		179DC14125FD0363009A1DDB /* GlyphsCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GlyphsCore.framework; path = "../../../../../Applications/Glyphs 3.app/Contents/Frameworks/GlyphsCore.framework"; sourceTree = "<group>"; };
-		179DC14725FD0409009A1DDB /* KeyboardSelectionTravel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KeyboardSelectionTravel.h; sourceTree = "<group>"; };
-		179DC14825FD0409009A1DDB /* KeyboardSelectionTravel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KeyboardSelectionTravel.m; sourceTree = "<group>"; };
+		179DC14725FD0409009A1DDB /* KSTController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KSTController.h; sourceTree = "<group>"; };
+		179DC14825FD0409009A1DDB /* KSTController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KSTController.m; sourceTree = "<group>"; };
 		179DC15825FD3587009A1DDB /* KSTCandidate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KSTCandidate.m; sourceTree = "<group>"; };
 		179DC15925FD3587009A1DDB /* KSTCandidate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KSTCandidate.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -29,7 +29,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				179DC14225FD0363009A1DDB /* GlyphsCore.framework in Frameworks */,
+				1702A10F26767E0900786AC6 /* GlyphsCore.framework in Frameworks */,
 				179DC14025FD0350009A1DDB /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -58,8 +58,8 @@
 			isa = PBXGroup;
 			children = (
 				179DC13725FD02D2009A1DDB /* Info.plist */,
-				179DC14725FD0409009A1DDB /* KeyboardSelectionTravel.h */,
-				179DC14825FD0409009A1DDB /* KeyboardSelectionTravel.m */,
+				179DC14725FD0409009A1DDB /* KSTController.h */,
+				179DC14825FD0409009A1DDB /* KSTController.m */,
 				179DC15925FD3587009A1DDB /* KSTCandidate.h */,
 				179DC15825FD3587009A1DDB /* KSTCandidate.m */,
 			);
@@ -69,7 +69,7 @@
 		179DC13E25FD0350009A1DDB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				179DC14125FD0363009A1DDB /* GlyphsCore.framework */,
+				1702A10E26767E0900786AC6 /* GlyphsCore.framework */,
 				179DC13F25FD0350009A1DDB /* Cocoa.framework */,
 			);
 			name = Frameworks;
@@ -142,7 +142,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				179DC15A25FD3587009A1DDB /* KSTCandidate.m in Sources */,
-				179DC14925FD0409009A1DDB /* KeyboardSelectionTravel.m in Sources */,
+				179DC14925FD0409009A1DDB /* KSTController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,13 +267,14 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEPLOYMENT_LOCATION = YES;
 				DEVELOPMENT_TEAM = FQ2KWJJUPU;
+				DSTROOT = "$(USER_LIBRARY_DIR)/Application Support/Glyphs 3/Plugins";
 				INFOPLIST_FILE = "Keyboard Selection Travel/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				INSTALL_PATH = /;
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.FlorianPircher.Keyboard-Selection-Travel";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = glyphsPlugin;
 			};
 			name = Debug;
@@ -284,12 +285,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = FQ2KWJJUPU;
+				DSTROOT = .;
 				INFOPLIST_FILE = "Keyboard Selection Travel/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				INSTALL_PATH = /;
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.FlorianPircher.Keyboard-Selection-Travel";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
+				SKIP_INSTALL = NO;
 				WRAPPER_EXTENSION = glyphsPlugin;
 			};
 			name = Release;
