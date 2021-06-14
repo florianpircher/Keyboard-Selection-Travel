@@ -20,6 +20,9 @@
 #import "KSTController.h"
 #import "KSTCandidate.h"
 
+static NSString * const kGlyphsHandleSizeKey = @"GSHandleSize";
+static NSString * const kGlyphsDrawOptionScaleKey = @"Scale";
+
 typedef NS_ENUM(NSUInteger, KSTTravel) {
     KSTTravelUp,
     KSTTravelDown,
@@ -28,8 +31,13 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 };
 
 @interface KSTController ()
+@property (atomic, assign) BOOL useAlternativeShortcuts;
 @property (nonatomic, retain) NSSet *ignoreToolClassNameSet;
+@property (atomic, assign) BOOL showHints;
+@property (atomic, assign) int hintSize;
+@property (nonatomic, retain) NSColor *hintColor;
 @property (nonatomic, assign) BOOL travelHintsActive;
+@property (nonatomic, retain) NSMutableSet *skippedCandidates;
 @end
 
 @implementation KSTController
@@ -40,7 +48,74 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         [NSUserDefaults.standardUserDefaults registerDefaults:@{
             kUseAlternativeShortcutsKey: @NO,
             kIgnoreToolsKey: @[@"GlyphsToolText"],
+            kShowHintsKey: @YES,
+            kHintSizeKey: @-1,
+            kHintColorKey: @-1,
         }];
+    }
+}
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        [self refreshUserDefaultsValueForKey:kUseAlternativeShortcutsKey];
+        [self refreshUserDefaultsValueForKey:kIgnoreToolsKey];
+        [self refreshUserDefaultsValueForKey:kShowHintsKey];
+        [self refreshUserDefaultsValueForKey:kHintSizeKey];
+        [self refreshUserDefaultsValueForKey:kHintColorKey];
+        _travelHintsActive = NO;
+        _skippedCandidates = [NSMutableSet set];
+    }
+    return self;
+}
+
+- (void)refreshUserDefaultsValueForKey:(NSString *)key {
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    
+    if ([key isEqualToString:kUseAlternativeShortcutsKey]) {
+        self.useAlternativeShortcuts = [defaults boolForKey:kUseAlternativeShortcutsKey];
+    }
+    else if ([key isEqualToString:kIgnoreToolsKey]) {
+        NSArray<NSString *> *ignoreToolClassNames = [defaults arrayForKey:kIgnoreToolsKey];
+        NSMutableSet<NSString *> *ignoreToolClassNameSet = [NSMutableSet new];
+        
+        if (ignoreToolClassNames != nil) {
+            for (NSString *className in ignoreToolClassNames) {
+                if ([className isKindOfClass:[NSString class]]) {
+                    [ignoreToolClassNameSet addObject:className];
+                }
+            }
+        }
+        
+        self.ignoreToolClassNameSet = ignoreToolClassNameSet;
+    }
+    else if ([key isEqualToString:kShowHintsKey]) {
+        self.showHints = [defaults boolForKey:kShowHintsKey];
+    }
+    else if ([key isEqualToString:kHintSizeKey]) {
+        int hintSize = (int)[defaults integerForKey:kHintSizeKey];
+        
+        if (hintSize == -1) {
+            hintSize = (int)[defaults integerForKey:kGlyphsHandleSizeKey];
+        }
+        
+        self.hintSize = hintSize;
+    }
+    else if ([key isEqualToString:kHintColorKey]) {
+        int hintColorId = (int)[defaults integerForKey:kHintColorKey];
+        
+        switch (hintColorId) {
+        case 0: self.hintColor = [NSColor systemRedColor]; break;
+        case 1: self.hintColor = [NSColor systemOrangeColor]; break;
+        case 2: self.hintColor = [NSColor systemBrownColor]; break;
+        case 3: self.hintColor = [NSColor systemYellowColor]; break;
+        case 4: self.hintColor = [NSColor systemGreenColor]; break;
+        case 7: self.hintColor = [NSColor systemBlueColor]; break;
+        case 8: self.hintColor = [NSColor systemPurpleColor]; break;
+        case 9: self.hintColor = [NSColor systemPinkColor]; break;
+        default: self.hintColor = [NSColor systemGrayColor]; break;
+        }
     }
 }
 
@@ -82,34 +157,33 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 }
 
 - (void)loadPlugin {
-    NSArray<NSString *> *ignoreToolClassNames = [NSUserDefaults.standardUserDefaults arrayForKey:kIgnoreToolsKey];
-    NSMutableSet<NSString *> *ignoreToolClassNameSet = [NSMutableSet new];
-    
-    if (ignoreToolClassNames != nil) {
-        for (NSString *className in ignoreToolClassNames) {
-            if ([className isKindOfClass:[NSString class]]) {
-                [ignoreToolClassNameSet addObject:className];
-            }
-        }
-    }
-    
-    self.ignoreToolClassNameSet = ignoreToolClassNameSet;
-    
     [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown|NSEventMaskFlagsChanged handler:^NSEvent * _Nullable(NSEvent * _Nonnull event) {
         NSUInteger flags = event.modifierFlags & kEventModifierKeyFlagsMask;
-        
+        BOOL isFlagsChange = event.type == NSEventTypeFlagsChanged;
         BOOL isTravel;
         
-        if ([NSUserDefaults.standardUserDefaults boolForKey:kUseAlternativeShortcutsKey]) {
+        if (self.useAlternativeShortcuts) {
             // alternative shortcuts are Control-Shift with the Up/Down/Left/Right arow keys
-            isTravel = flags == (NSEventModifierFlagControl|NSEventModifierFlagShift);
+            isTravel = flags == (NSEventModifierFlagControl|NSEventModifierFlagShift)
+                || (isFlagsChange && flags == (NSEventModifierFlagControl|NSEventModifierFlagShift|NSEventModifierFlagCommand));
         } else {
             // standard shortcuts are Control with the Up/Down/Left/Right arow keys
-            isTravel = flags == NSEventModifierFlagControl;
+            isTravel = flags == NSEventModifierFlagControl
+                || (isFlagsChange && flags == (NSEventModifierFlagControl|NSEventModifierFlagCommand));
         }
         
-        if (event.type == NSEventTypeFlagsChanged) {
+        if (isFlagsChange) {
             self.travelHintsActive = isTravel;
+            
+            if (isTravel) {
+                if (flags & NSEventModifierFlagCommand) {
+                    [self cycleCandidates];
+                    [self.editViewController redraw];
+                }
+            }
+            else {
+                [self resetSkippedCandidates];
+            }
         }
         else if (event.type == NSEventTypeKeyDown && isTravel && self.travelActive) {
             unichar character = [event.charactersIgnoringModifiers characterAtIndex:0];
@@ -123,7 +197,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         return event;
     }];
     
-    [GSCallbackHandler addCallback:self forOperation:GSDrawBackgroundCallbackName];
+    [GSCallbackHandler addCallback:self forOperation:GSDrawForegroundCallbackName];
 }
 
 - (BOOL)travelForCharacter:(unichar)charachter {
@@ -220,6 +294,9 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     if ([origin isEqualTo:target]) {
         return;
     }
+    if ([self.skippedCandidates containsObject:target]) {
+        return;
+    }
     
     CGFloat distance = [self distanceFrom:origin to:target atScale:scale withTravel:travel];
     
@@ -272,11 +349,16 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     [self.editViewController redraw];
 }
 
-- (void)drawBackgroundForLayer:(GSLayer *)layer options:(NSDictionary *)options {
-    if (self.travelHintsActive && self.travelActive) {
-        CGFloat scale = [options[@"Scale"] doubleValue];
+- (void)drawForegroundForLayer:(GSLayer *)layer options:(NSDictionary *)options {
+    GSLayer *activeLayer = self.editViewController.activeLayer;
+    
+    if ([layer isNotEqualTo:activeLayer]) {
+        return;
+    }
+    
+    if (self.showHints && self.travelHintsActive && self.travelActive) {
+        CGFloat scale = [options[kGlyphsDrawOptionScaleKey] doubleValue];
         CGFloat upm = ((GSApplication *)NSApp).currentFontDocument.font.unitsPerEm;
-        GSLayer *layer = self.editViewController.activeLayer;
         NSMutableOrderedSet<GSSelectableElement *> *selection = layer.selection;
         
         NSArray<KSTCandidate *> *upTargets = [self targetsForTravel:KSTTravelUp fromSelection:selection onLayer:layer atScale:upm];
@@ -285,70 +367,166 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         NSArray<KSTCandidate *> *rightTargets = [self targetsForTravel:KSTTravelRight fromSelection:selection onLayer:layer atScale:upm];
         
         for (int i = 0; i < selection.count; i++) {
-            GSSelectableElement *origin = selection[i];
-            
             KSTCandidate *upCandidate = upTargets[i];
             KSTCandidate *downCandidate = downTargets[i];
             KSTCandidate *leftCandidate = leftTargets[i];
             KSTCandidate *rightCandidate = rightTargets[i];
             
             if (upCandidate.element != nil) {
-                [self drawHintFromStart:origin.position toEnd:upCandidate.element.position atScale:scale];
+                [self drawHintForTravel:KSTTravelUp atPoint:upCandidate.element.position atScale:scale];
             }
             if (downCandidate.element != nil) {
-                [self drawHintFromStart:origin.position toEnd:downCandidate.element.position atScale:scale];
+                [self drawHintForTravel:KSTTravelDown atPoint:downCandidate.element.position atScale:scale];
             }
             if (leftCandidate.element != nil) {
-                [self drawHintFromStart:origin.position toEnd:leftCandidate.element.position atScale:scale];
+                [self drawHintForTravel:KSTTravelLeft atPoint:leftCandidate.element.position atScale:scale];
             }
             if (rightCandidate.element != nil) {
-                [self drawHintFromStart:origin.position toEnd:rightCandidate.element.position atScale:scale];
+                [self drawHintForTravel:KSTTravelRight atPoint:rightCandidate.element.position atScale:scale];
             }
         }
     }
 }
 
-- (void)drawHintFromStart:(CGPoint)start toEnd:(CGPoint)end atScale:(CGFloat)scale {
-    CGFloat length = hypot(end.x - start.x, end.y - start.y);
-    CGFloat headOffset = 5 / scale;
-    CGFloat tailLength = length - (7 / scale) - headOffset;
-    CGFloat headWidth = 6 / scale;
+- (void)drawHintForTravel:(KSTTravel)travel atPoint:(CGPoint)point atScale:(CGFloat)scale {
+    CGFloat offset;
+    CGFloat headLength;
+    CGFloat headSpan;
+    
+    switch (self.hintSize) {
+    case 0:
+        offset = 3 / scale;
+        headLength = 5 / scale;
+        headSpan = 2 / scale;
+        break;
+    case 2:
+        offset = 7 / scale;
+        headLength = 12 / scale;
+        headSpan = 6 / scale;
+        break;
+    default:
+        offset = 4 / scale;
+        headLength = 7 / scale;
+        headSpan = 3 / scale;
+        break;
+    }
     
     NSBezierPath *arrowHead = [NSBezierPath bezierPath];
-    [arrowHead moveToPoint:NSMakePoint(tailLength, headWidth / 2)];
-    [arrowHead lineToPoint:NSMakePoint(length - headOffset, 0)];
-    [arrowHead lineToPoint:NSMakePoint(tailLength, -headWidth / 2)];
+    [arrowHead moveToPoint:NSMakePoint(-headLength, headSpan)];
+    [arrowHead lineToPoint:NSZeroPoint];
+    [arrowHead lineToPoint:NSMakePoint(-headLength, -headSpan)];
     [arrowHead closePath];
     
-    CGFloat cosine = (end.x - start.x) / length;
-    CGFloat sine = (end.y - start.y) / length;
     NSAffineTransform *transform = [NSAffineTransform transform];
-    NSAffineTransformStruct transformStruct;
-    transformStruct.m11 = cosine;
-    transformStruct.m12 = sine;
-    transformStruct.m21 = -sine;
-    transformStruct.m22 = cosine;
-    transformStruct.tX = start.x;
-    transformStruct.tY = start.y;
-    [transform setTransformStruct: transformStruct];
+    
+    switch (travel) {
+    case KSTTravelUp:
+        [transform translateXBy:point.x yBy:point.y - offset];
+        [transform rotateByDegrees:90];
+        break;
+    case KSTTravelDown:
+        [transform translateXBy:point.x yBy:point.y + offset];
+        [transform rotateByDegrees:-90];
+        break;
+    case KSTTravelLeft:
+        [transform translateXBy:point.x + offset yBy:point.y];
+        [transform rotateByDegrees:-180];
+        break;
+    case KSTTravelRight:
+        [transform translateXBy:point.x - offset yBy:point.y];
+        break;
+    }
+    
     [arrowHead transformUsingAffineTransform:transform];
     
-    [NSColor.systemGrayColor set];
+    [self.hintColor setFill];
     [arrowHead fill];
+}
+
+- (void)cycleCandidates {
+    GSFont *font = ((GSApplication *)NSApp).currentFontDocument.font;
     
-    if (tailLength > 0) {
-        NSBezierPath *arrowTail = [NSBezierPath bezierPath];
-        [arrowTail moveToPoint:NSMakePoint(1 / scale, 0)];
-        [arrowTail lineToPoint:NSMakePoint(tailLength, 0)];
-        [arrowTail setLineWidth:1 / scale];
-        [arrowTail setLineCapStyle:NSLineCapStyleRound];
-        CGFloat dashPattern[] = { 2.5 / scale, 4 / scale };
-        [arrowTail transformUsingAffineTransform:transform];
-        
-        [arrowTail setLineDash:dashPattern count:2 phase:0];
-        [[NSColor.systemGrayColor colorWithAlphaComponent:0.2] set];
-        [arrowTail stroke];
+    if (font == nil) {
+        return;
     }
+    
+    CGFloat upm = font.unitsPerEm;
+    GSLayer *layer = self.editViewController.activeLayer;
+    
+    if (layer == nil) {
+        return;
+    }
+    
+    NSMutableOrderedSet<GSSelectableElement *> *selection = layer.selection;
+    
+    if (selection.count == 0) {
+        return;
+    }
+    
+    NSArray<KSTCandidate *> *upTargets = [self targetsForTravel:KSTTravelUp fromSelection:selection onLayer:layer atScale:upm];
+    NSArray<KSTCandidate *> *downTargets = [self targetsForTravel:KSTTravelDown fromSelection:selection onLayer:layer atScale:upm];
+    NSArray<KSTCandidate *> *leftTargets = [self targetsForTravel:KSTTravelLeft fromSelection:selection onLayer:layer atScale:upm];
+    NSArray<KSTCandidate *> *rightTargets = [self targetsForTravel:KSTTravelRight fromSelection:selection onLayer:layer atScale:upm];
+    
+    for (int i = 0; i < selection.count; i++) {
+        KSTCandidate *upCandidate = upTargets[i];
+        KSTCandidate *downCandidate = downTargets[i];
+        KSTCandidate *leftCandidate = leftTargets[i];
+        KSTCandidate *rightCandidate = rightTargets[i];
+        
+        if (upCandidate.element != nil) {
+            [self.skippedCandidates addObject:upCandidate.element];
+        }
+        if (downCandidate.element != nil) {
+            [self.skippedCandidates addObject:downCandidate.element];
+        }
+        if (leftCandidate.element != nil) {
+            [self.skippedCandidates addObject:leftCandidate.element];
+        }
+        if (rightCandidate.element != nil) {
+            [self.skippedCandidates addObject:rightCandidate.element];
+        }
+    }
+    
+    BOOL hasUnskippedCandidates = NO;
+    
+    upTargets = [self targetsForTravel:KSTTravelUp fromSelection:selection onLayer:layer atScale:upm];
+    downTargets = [self targetsForTravel:KSTTravelDown fromSelection:selection onLayer:layer atScale:upm];
+    leftTargets = [self targetsForTravel:KSTTravelLeft fromSelection:selection onLayer:layer atScale:upm];
+    rightTargets = [self targetsForTravel:KSTTravelRight fromSelection:selection onLayer:layer atScale:upm];
+    
+    for (int i = 0; i < selection.count; i++) {
+        KSTCandidate *upCandidate = upTargets[i];
+        KSTCandidate *downCandidate = downTargets[i];
+        KSTCandidate *leftCandidate = leftTargets[i];
+        KSTCandidate *rightCandidate = rightTargets[i];
+        
+        if (upCandidate.element != nil) {
+            hasUnskippedCandidates |= YES;
+            break;
+        }
+        if (downCandidate.element != nil) {
+            hasUnskippedCandidates |= YES;
+            break;
+        }
+        if (leftCandidate.element != nil) {
+            hasUnskippedCandidates |= YES;
+            break;
+        }
+        if (rightCandidate.element != nil) {
+            hasUnskippedCandidates |= YES;
+            break;
+        }
+    }
+    
+    if (!hasUnskippedCandidates) {
+        // no more targets to cycle to: reset cycle
+        [self resetSkippedCandidates];
+    }
+}
+
+- (void)resetSkippedCandidates {
+    [self.skippedCandidates removeAllObjects];
 }
 
 @end

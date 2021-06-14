@@ -30,10 +30,16 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-/// User default preferences key whether to use Control-Shift instead of Control.
+/// User default key whether to use Control-Shift instead of Control.
 static NSString * const kUseAlternativeShortcutsKey = @"com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts";
-/// Set of tools class names for which this plugin will be disabled.
+/// User default key for a set of tools class names for which this plugin will be disabled.
 static NSString * const kIgnoreToolsKey = @"com.FlorianPircher.Keyboard-Selection-Travel.IgnoreTools";
+/// User default key whether to show (`YES`) or hide (`NO`) hints.
+static NSString * const kShowHintsKey = @"com.FlorianPircher.Keyboard-Selection-Travel.ShowHints";
+/// User default key for the size of hints. -1: auto, 0: small, 1: regular, 3: large.
+static NSString * const kHintSizeKey = @"com.FlorianPircher.Keyboard-Selection-Travel.HintSize";
+/// User default preferences key for the hint color. The following colors are available: red = 0, orange = 1, brown = 2, yellow = 3, green = 4, blue = 7, purple = 8, pink = 9, gray = 10.
+static NSString * const kHintColorKey = @"com.FlorianPircher.Keyboard-Selection-Travel.HintColor";
 
 const NSUInteger kEventModifierKeyFlagsMask = NSEventModifierFlagShift|NSEventModifierFlagControl|NSEventModifierFlagOption|NSEventModifierFlagCommand;
 
