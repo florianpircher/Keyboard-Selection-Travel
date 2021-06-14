@@ -34,6 +34,8 @@ NS_ASSUME_NONNULL_BEGIN
 static NSString * const kUseAlternativeShortcutsKey = @"com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts";
 /// User default key for a set of tools class names for which this plugin will be disabled.
 static NSString * const kIgnoreToolsKey = @"com.FlorianPircher.Keyboard-Selection-Travel.IgnoreTools";
+/// User default key whether to ignore anchors when searching for travel candidates.
+static NSString * const kIgnoreAnchorsKey = @"com.FlorianPircher.Keyboard-Selection-Travel.IgnoreAnchors";
 /// User default key whether to show (`YES`) or hide (`NO`) hints.
 static NSString * const kShowHintsKey = @"com.FlorianPircher.Keyboard-Selection-Travel.ShowHints";
 /// User default key for the size of hints. -1: auto, 0: small, 1: regular, 3: large.

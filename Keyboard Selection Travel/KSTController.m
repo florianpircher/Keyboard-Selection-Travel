@@ -31,13 +31,22 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 };
 
 @interface KSTController ()
+/// If set, additionally accepts Control-Shift as the base modifier flags (normally only Control is used). This can be useful in cas Command-Arrow key already conflics with system commands.
 @property (atomic, assign) BOOL useAlternativeShortcuts;
+/// List of Glyphs tool class names for which the plugin is disabled.
 @property (nonatomic, retain) NSSet *ignoreToolClassNameSet;
+/// Whether to ignore anchors when searching for travel candidates.
+@property (atomic, assign) BOOL ignoreAnchors;
+/// Whether to show travel hints.
 @property (atomic, assign) BOOL showHints;
+/// The visual size of travel hints. See `kHintSizeKey` for details.
 @property (atomic, assign) int hintSize;
+/// The fill color of travel hints. See `kHintColorKey` for details.
 @property (nonatomic, retain) NSColor *hintColor;
+/// Whether travel hints are currently shown.
 @property (nonatomic, assign) BOOL travelHintsActive;
-@property (nonatomic, retain) NSMutableSet *skippedCandidates;
+/// Set of elements that were skipped by pressing the Command key.
+@property (nonatomic, retain) NSMutableSet<GSElement *> *skippedCandidates;
 @end
 
 @implementation KSTController
@@ -47,7 +56,8 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     if (self == [KSTController class]) {
         [NSUserDefaults.standardUserDefaults registerDefaults:@{
             kUseAlternativeShortcutsKey: @NO,
-            kIgnoreToolsKey: @[@"GlyphsToolText"],
+            kIgnoreToolsKey: @[@"GlyphsToolText", @"GlyphsToolHand"],
+            kIgnoreAnchorsKey: @NO,
             kShowHintsKey: @YES,
             kHintSizeKey: @-1,
             kHintColorKey: @-1,
@@ -61,6 +71,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     if (self) {
         [self refreshUserDefaultsValueForKey:kUseAlternativeShortcutsKey];
         [self refreshUserDefaultsValueForKey:kIgnoreToolsKey];
+        [self refreshUserDefaultsValueForKey:kIgnoreAnchorsKey];
         [self refreshUserDefaultsValueForKey:kShowHintsKey];
         [self refreshUserDefaultsValueForKey:kHintSizeKey];
         [self refreshUserDefaultsValueForKey:kHintColorKey];
@@ -70,6 +81,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     return self;
 }
 
+/// Updates a property value with the current value from its user defaults storage.
 - (void)refreshUserDefaultsValueForKey:(NSString *)key {
     NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
     
@@ -77,6 +89,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         self.useAlternativeShortcuts = [defaults boolForKey:kUseAlternativeShortcutsKey];
     }
     else if ([key isEqualToString:kIgnoreToolsKey]) {
+        // read array into set of strings
         NSArray<NSString *> *ignoreToolClassNames = [defaults arrayForKey:kIgnoreToolsKey];
         NSMutableSet<NSString *> *ignoreToolClassNameSet = [NSMutableSet new];
         
@@ -90,6 +103,9 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         
         self.ignoreToolClassNameSet = ignoreToolClassNameSet;
     }
+    else if ([key isEqualToString:kIgnoreAnchorsKey]) {
+        self.ignoreAnchors = [defaults boolForKey:kIgnoreAnchorsKey];
+    }
     else if ([key isEqualToString:kShowHintsKey]) {
         self.showHints = [defaults boolForKey:kShowHintsKey];
     }
@@ -97,6 +113,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         int hintSize = (int)[defaults integerForKey:kHintSizeKey];
         
         if (hintSize == -1) {
+            // use Glyphs handle size if hint size is set to auto (-1).
             hintSize = (int)[defaults integerForKey:kGlyphsHandleSizeKey];
         }
         
@@ -139,7 +156,6 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     }
     
     if ([self.ignoreToolClassNameSet containsObject:windowController.toolDrawDelegate.className]) {
-        // Control-Up/Down/Left/Right (with out without Shift) is already used by Text tool
         return NO;
     }
     
@@ -150,6 +166,16 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     }
     
     return YES;
+}
+
+- (void)setTravelHintsActive:(BOOL)travelHintsActive {
+    if (_travelHintsActive == travelHintsActive) {
+        return;
+    }
+    
+    _travelHintsActive = travelHintsActive;
+    
+    [self.editViewController redraw];
 }
 
 - (NSUInteger)interfaceVersion {
@@ -177,19 +203,23 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
             
             if (isTravel) {
                 if (flags & NSEventModifierFlagCommand) {
+                    // Command key what pressed while in travel mode: cycle candidates
                     [self cycleCandidates];
                     [self.editViewController redraw];
                 }
             }
             else {
+                // travel mode was exiteded: reset skipped candidates to start cycle anew
                 [self resetSkippedCandidates];
             }
         }
         else if (event.type == NSEventTypeKeyDown && isTravel && self.travelActive) {
+            // perform selection travel
             unichar character = [event.charactersIgnoringModifiers characterAtIndex:0];
             BOOL didTravel = [self travelForCharacter:character];
             
             if (didTravel) {
+                // selection did travel, prevent event from propagating since shortcut was already handled
                 return nil;
             }
         }
@@ -200,6 +230,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     [GSCallbackHandler addCallback:self forOperation:GSDrawForegroundCallbackName];
 }
 
+/// Routes the selection based on the pressed arrow key.
 - (BOOL)travelForCharacter:(unichar)charachter {
     switch (charachter) {
     case NSUpArrowFunctionKey:
@@ -215,6 +246,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     }
 }
 
+/// Updates the selection on the active layer to reflect the given travel direction.
 - (BOOL)travel:(KSTTravel)travel {
     CGFloat upm = ((GSApplication *)NSApp).currentFontDocument.font.unitsPerEm;
     GSLayer *layer = self.editViewController.activeLayer;
@@ -222,6 +254,10 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     
     if (selection == nil) {
         return NO;
+    }
+    if (selection.count == 0) {
+        // early exit
+        return YES;
     }
     
     NSArray<KSTCandidate *> *candidates = [self targetsForTravel:travel fromSelection:selection onLayer:layer atScale:upm];
@@ -249,15 +285,16 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     return YES;
 }
 
+/// Returns the travel candidates for the given setting.
 - (NSArray<KSTCandidate *> *)targetsForTravel:(KSTTravel)travel fromSelection:(NSOrderedSet<GSSelectableElement *> *)selection onLayer:(GSLayer *)layer atScale:(CGFloat)scale {
     // candidates are points which might be the travel target
     NSMutableArray<KSTCandidate *> *candidates = [NSMutableArray arrayWithCapacity:selection.count];
     
-    // populate `candidates` with all points of the current selection
-    // in case no target is found, the current selection kept
-    // set `element` to `nil` to indicate “no change”
-    // set distance to max so other points have a chance to become target
-    // the current selection points are placed first in `candidates` so they are picked in case all other candidates also have max distance
+    // - populate `candidates` with all points of the current selection
+    // - in case no target is found, the current selection is kept
+    // - set `element` to `nil` to indicate “no change”
+    // - set distance to max so other points have a chance to become the candidate element
+    // - the current selection points are placed first in `candidates` so they are picked in case all other candidates also have max distance
     for (int i = 0; i < selection.count; i++) {
         KSTCandidate *candidate = [KSTCandidate new];
         candidate.distance = CGFLOAT_MAX;
@@ -274,18 +311,21 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         }
     }
     
-    // evaluate all anchors
-    for (NSString *anchorName in layer.anchors) {
-        GSAnchor *anchor = [layer.anchors objectForKey:anchorName];
-        
-        for (int i = 0; i < selection.count; i++) {
-            [self evaluateCandidate:candidates[i] fromOrigin:(GSShape *)selection[i] toTarget:anchor atScale:scale withTravel:travel];
+    if (!self.ignoreAnchors) {
+        // evaluate all anchors
+        for (NSString *anchorName in layer.anchors) {
+            GSAnchor *anchor = [layer.anchors objectForKey:anchorName];
+            
+            for (int i = 0; i < selection.count; i++) {
+                [self evaluateCandidate:candidates[i] fromOrigin:(GSShape *)selection[i] toTarget:anchor atScale:scale withTravel:travel];
+            }
         }
     }
     
     return candidates;
 }
 
+/// Update the given candidate with `target` as its element if `target` matches the direction and is a better candidate element than the current one.
 - (void)evaluateCandidate:(KSTCandidate *)candidate
                fromOrigin:(GSShape *)origin
                  toTarget:(GSElement *)target
@@ -306,6 +346,11 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     }
 }
 
+/// An abstract distance function for comparing the distance of points with respect to a given travel direction.
+///
+/// A distance is shorter if the vertical distance is shorter, the horizontal distance is shorter, and/or if the angle between the points is acute. The vertical and horizontal offset of the points is weighted diffrently such that the primary offset is more impactful on the returned distance. The primary offset is along the travel direction; the secondary offset is orthogonal to the travel direction. For example, for a travel to the right, the *x* axis is the primary axis and the *x* offset of the points is the primary offset.
+///
+/// See the readme for an illustration of this function.
 - (CGFloat)distanceFrom:(GSShape *)s1 to:(GSShape *)s2 atScale:(CGFloat)scale withTravel:(KSTTravel)travel {
     CGFloat x1 = s1.position.x / scale + 1;
     CGFloat y1 = s1.position.y / scale + 1;
@@ -339,16 +384,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     return distance;
 }
 
-- (void)setTravelHintsActive:(BOOL)travelHintsActive {
-    if (_travelHintsActive == travelHintsActive) {
-        return;
-    }
-    
-    _travelHintsActive = travelHintsActive;
-    
-    [self.editViewController redraw];
-}
-
+/// Drawn the travel hints for the current candidates.
 - (void)drawForegroundForLayer:(GSLayer *)layer options:(NSDictionary *)options {
     GSLayer *activeLayer = self.editViewController.activeLayer;
     
@@ -388,6 +424,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     }
 }
 
+/// Draws a single travel hint at a given point for a given travel direction.
 - (void)drawHintForTravel:(KSTTravel)travel atPoint:(CGPoint)point atScale:(CGFloat)scale {
     CGFloat offset;
     CGFloat headLength;
@@ -443,6 +480,9 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     [arrowHead fill];
 }
 
+/// Skips the current travel candidates and thereby offers the next closes travel targets as candidates.
+///
+/// If no more points can be skipped, resets the cycle to the original travel candidates.
 - (void)cycleCandidates {
     GSFont *font = ((GSApplication *)NSApp).currentFontDocument.font;
     
@@ -463,6 +503,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         return;
     }
     
+    // mark all current candidates as skipped
     NSArray<KSTCandidate *> *upTargets = [self targetsForTravel:KSTTravelUp fromSelection:selection onLayer:layer atScale:upm];
     NSArray<KSTCandidate *> *downTargets = [self targetsForTravel:KSTTravelDown fromSelection:selection onLayer:layer atScale:upm];
     NSArray<KSTCandidate *> *leftTargets = [self targetsForTravel:KSTTravelLeft fromSelection:selection onLayer:layer atScale:upm];
@@ -488,6 +529,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         }
     }
     
+    // check if there are any candidates left for the next cycle
     BOOL hasUnskippedCandidates = NO;
     
     upTargets = [self targetsForTravel:KSTTravelUp fromSelection:selection onLayer:layer atScale:upm];
@@ -502,19 +544,19 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         KSTCandidate *rightCandidate = rightTargets[i];
         
         if (upCandidate.element != nil) {
-            hasUnskippedCandidates |= YES;
+            hasUnskippedCandidates = YES;
             break;
         }
         if (downCandidate.element != nil) {
-            hasUnskippedCandidates |= YES;
+            hasUnskippedCandidates = YES;
             break;
         }
         if (leftCandidate.element != nil) {
-            hasUnskippedCandidates |= YES;
+            hasUnskippedCandidates = YES;
             break;
         }
         if (rightCandidate.element != nil) {
-            hasUnskippedCandidates |= YES;
+            hasUnskippedCandidates = YES;
             break;
         }
     }
@@ -525,6 +567,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     }
 }
 
+/// Resets the cycle to the original travel candidates.
 - (void)resetSkippedCandidates {
     [self.skippedCandidates removeAllObjects];
 }
