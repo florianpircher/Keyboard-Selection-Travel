@@ -14,7 +14,7 @@ Relaunch Glyphs for the plugin to be loaded.
 
 ## Usage
 
-[![](https://florianpircher.com/glyphs/plugins/keyboard-selection-travel/video/animation.png)](https://florianpircher.com/glyphs/plugins/keyboard-selection-travel/video/animation.mp4)
+https://user-images.githubusercontent.com/3776198/172874831-06d52879-e60c-41f6-af3e-c3a6e090b8bc.mp4
 
 1. In Edit view, select a point (on-curve point <img src="Assets/on-curve-smooth.svg" width="10" height="10" alt>/<img src="Assets/on-curve-corner.svg" width="10" height="10" alt>, off-curve point <img src="Assets/off-curve.svg" width="10" height="10" alt>, or anchor <img src="Assets/anchor.svg" width="10" height="10" alt>) and hold down the Control key.
 2. Keyboard Selection Travel marks all available travel destinations with a small gray triangle (▲&#xFE0E;, ▼&#xFE0E;, ◀&#xFE0E;, or ▶&#xFE0E;).
@@ -35,84 +35,22 @@ Keyboard Selection Travel offers a range of configurable preferences.
 The `ShowHints` preference controls whether travel hints (small arrow-head icons) are shown when holding down the Control key.
 This preference is activated by default.
 
-<details>
-<summary>Setting the <code>ShowHints</code> Preference</summary>
-
-<details>
-<summary>Set <code>ShowHints</code> from the Command Line</summary>
-
-Run the following line to set the preference to `NO` (or `YES` to activate):
-
-```shell
-defaults write com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.ShowHints -bool NO
-```
-
-Run the following line to use the default value:
-
-```shell
-defaults delete com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.ShowHints
-```
-</details>
-
-<details>
-<summary>Set <code>ShowHints</code> from Glyphs’ Macro Panel</summary>
-
-Run the following line to set the preference to `False` (or `True` to activate, or `None` to reset):
+Run the following line in the Macro Panel to set the preference to `False` (or `True` to activate, or `None` to reset):
 
 ```python
 Glyphs.boolDefaults["com.FlorianPircher.Keyboard-Selection-Travel.ShowHints"] = False
 ```
-</details>
-
-<details>
-<summary>Set <code>ShowHints</code> using mekkablue’s scripts</summary>
-
-Choose *Script* → *mekkablue* → *App* → *Set Hidden App Preferences*, enter `com.FlorianPircher.Keyboard-Selection-Travel.ShowHints`), set the value to `NO` (or `YES` to activate), and confirm with *Apply*.
-Click *Reset* to use the default value.
-</details>
-</details>
 
 ### Hint Size
 
 The `HintSize` preference controls the visual size of travel hints.
 Set the preference to `-1` for automatic size (default), `0` for small, `1` for regular, or `2` for large.
 
-<details>
-<summary>Setting the <code>HintSize</code> Preference</summary>
-
-<details>
-<summary>Set <code>HintSize</code> from the Command Line</summary>
-
-Run the following line to set the preference to `-1`, `0`, `1`, or `2`:
-
-```shell
-defaults write com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.HintSize -int 2
-```
-
-Run the following line to use the default value:
-
-```shell
-defaults delete com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.HintSize
-```
-</details>
-
-<details>
-<summary>Set <code>HintSize</code> from Glyphs’ Macro Panel</summary>
-
-Run the following line to set the preference to `-1`, `0`, `1`, or `2` (or `None` to reset):
+Run the following line in the Macro Panel to set the preference to `-1`, `0`, `1`, or `2` (or `None` to reset):
 
 ```python
 Glyphs.defaults["com.FlorianPircher.Keyboard-Selection-Travel.HintSize"] = 2
 ```
-</details>
-
-<details>
-<summary>Set <code>HintSize</code> using mekkablue’s scripts</summary>
-
-Choose *Script* → *mekkablue* → *App* → *Set Hidden App Preferences*, enter `com.FlorianPircher.Keyboard-Selection-Travel.HintSize`), set the value to `-1`, `0`, `1`, or `2`, and confirm with *Apply*.
-Click *Reset* to use the default value.
-</details>
-</details>
 
 ### Hint Color
 
@@ -120,84 +58,22 @@ The `HintColor` preference controls the color of travel hints.
 Set the preference to `10` for the default gray color or to one of the following numbers:
 `0`: red, `1`: orange, `2`: brown, `3`: yellow, `4`: green, `7`: blue, `8`: purple, `9`: pink, `10`: gray.
 
-<details>
-<summary>Setting the <code>HintColor</code> Preference</summary>
-
-<details>
-<summary>Set <code>HintColor</code> from the Command Line</summary>
-
-Run the following line to set the preference:
-
-```shell
-defaults write com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.HintColor -int 1
-```
-
-Run the following line to use the default value:
-
-```shell
-defaults delete com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.HintColor
-```
-</details>
-
-<details>
-<summary>Set <code>HintColor</code> from Glyphs’ Macro Panel</summary>
-
-Run the following line to set the preference (or set it to `None` to reset it):
+Run the following line in the Macro Panel to set the preference (or set it to `None` to reset it):
 
 ```python
 Glyphs.defaults["com.FlorianPircher.Keyboard-Selection-Travel.HintColor"] = 1
 ```
-</details>
-
-<details>
-<summary>Set <code>HintColor</code> using mekkablue’s scripts</summary>
-
-Choose *Script* → *mekkablue* → *App* → *Set Hidden App Preferences*, enter `com.FlorianPircher.Keyboard-Selection-Travel.HintColor`), set the value, and confirm with *Apply*.
-Click *Reset* to use the default value.
-</details>
-</details>
 
 ### Ignore Anchors
 
 The `IgnoreAnchors` preference excludes anchors from the travel destinations.
 This preference is deactivated by default.
 
-<details>
-<summary>Setting the <code>IgnoreAnchors</code> Preference</summary>
-
-<details>
-<summary>Set <code>IgnoreAnchors</code> from the Command Line</summary>
-
-Run the following line to set the preference to `YES` (or `NO` to deactivate):
-
-```shell
-defaults write com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.IgnoreAnchors -bool YES
-```
-
-Run the following line to use the default value:
-
-```shell
-defaults delete com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.IgnoreAnchors
-```
-</details>
-
-<details>
-<summary>Set <code>IgnoreAnchors</code> from Glyphs’ Macro Panel</summary>
-
-Run the following line to set the preference to `True` (or `False` to deactivate, or `None` to reset):
+Run the following line in the Macro Panel to set the preference to `True` (or `False` to deactivate, or `None` to reset):
 
 ```python
 Glyphs.boolDefaults["com.FlorianPircher.Keyboard-Selection-Travel.IgnoreAnchors"] = True
 ```
-</details>
-
-<details>
-<summary>Set <code>IgnoreAnchors</code> using mekkablue’s scripts</summary>
-
-Choose *Script* → *mekkablue* → *App* → *Set Hidden App Preferences*, enter `com.FlorianPircher.Keyboard-Selection-Travel.IgnoreAnchors`), set the value to `YES` (or `NO` to deactivate), and confirm with *Apply*.
-Click *Reset* to use the default value.
-</details>
-</details>
 
 ### Ignore Tools
 
@@ -210,35 +86,11 @@ Run the following code in the Macro Panel to get the class name of the currently
 print(Glyphs.documents[0].windowController().toolDrawDelegate().className())
 ```
 
-<details>
-<summary>Setting the <code>IgnoreTools</code> Preference</summary>
-
-<details>
-<summary>Set <code>IgnoreTools</code> from the Command Line</summary>
-
-Run the following line to set the preference:
-
-```shell
-defaults write com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.IgnoreTools -array GlyphsToolText GlyphsToolTrueTypeInstructor
-```
-
-Run the following line to use the default value:
-
-```shell
-defaults delete com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.IgnoreTools
-```
-</details>
-
-<details>
-<summary>Set <code>IgnoreTools</code> from Glyphs’ Macro Panel</summary>
-
-Run the following line to set the preference (or set to `None` to reset it):
+Run the following line in the Macro Panel to set the preference (or set to `None` to reset it):
 
 ```python
 Glyphs.defaults["com.FlorianPircher.Keyboard-Selection-Travel.IgnoreTools"] = ["GlyphsToolText", "GlyphsToolTrueTypeInstructor"]
 ```
-</details>
-</details>
 
 ### Use Alternative Shortcuts
 
@@ -246,42 +98,11 @@ The `UseAlternativeShortcuts` preference accepts shortcuts with only the Control
 This is helpful in case Command-Arrow key is already used by some other command (another plugin, some script, a macOS system command, etc.).
 This preference is deactivated by default.
 
-<details>
-<summary>Setting the <code>UseAlternativeShortcuts</code> Preference</summary>
-
-<details>
-<summary>Set <code>UseAlternativeShortcuts</code> from the Command Line</summary>
-
-Run the following line to set the preference to `YES` (or `NO` to deactivate):
-
-```shell
-defaults write com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts -bool YES
-```
-
-Run the following line to use the default value:
-
-```shell
-defaults delete com.GeorgSeifert.Glyphs3 com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts
-```
-</details>
-
-<details>
-<summary>Set <code>UseAlternativeShortcuts</code> from Glyphs’ Macro Panel</summary>
-
-Run the following line to set the preference to `True` (or `False` to deactivate, or `None` to reset):
+Run the following line in the Macro Panel to set the preference to `True` (or `False` to deactivate, or `None` to reset):
 
 ```python
 Glyphs.boolDefaults["com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts"] = True
 ```
-</details>
-
-<details>
-<summary>Set <code>UseAlternativeShortcuts</code> using mekkablue’s scripts</summary>
-
-Choose *Script* → *mekkablue* → *App* → *Set Hidden App Preferences*, enter `com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts`), set the value to `YES` (or `NO` to deactivate), and confirm with *Apply*.
-Click *Reset* to use the default value.
-</details>
-</details>
 
 ## Troubleshooting
 
@@ -304,8 +125,8 @@ This action moves the selection to the closest points above the current selectio
 The closest point is determined by assigning each unselected point a distance and picking the point with the smallest distance.
 
 The distance between two points can be computed in many different ways.
-The rectilinear distance is the sum of the vertical offset and the horizontal offset (`|p1.x - p2.x| + |p1.y - p2.y|`).
-The Euclidean distance is the length of a straight line from one point to the other (`sqrt((p1.x - p2.x)^2 + (p1.y - p2.y)^2)`).
+The rectilinear distance is the sum of the vertical offset and the horizontal offset: $|x_1 - x_2| + |y_1 - y_2|$.
+The Euclidean distance is the length of a straight line from one point to the other: $\sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2}$.
 Both distances are unsuitable since they do not distinguish between vertical offset and horizontal offset.
 
 In the animation above, observe the moving selection on the digit 2 on the left.
