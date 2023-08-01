@@ -7,9 +7,9 @@ Move the selection visually.
 
 ## Installation
 
-[Install **Keyboard Selection Travel** in Glyphs](https://florianpircher.com/glyphs/plugins/keyboard-selection-travel/install)
+<a href="https://florianpircher.com/glyphs/plugins/keyboard-selection-travel/install"><img src="Assets/DownloadBadge.svg" alt="Download on the Plugin Manager" height="50"></a>
 
-Install the plugin using the link above or search for “Keyboard Selection Travel” in the Plugin Manager.
+Install the plugin using the button above or search for “Keyboard Selection Travel” in the Plugin Manager.
 Relaunch Glyphs for the plugin to be loaded.
 
 ## Usage
