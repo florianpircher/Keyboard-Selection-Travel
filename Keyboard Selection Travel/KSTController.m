@@ -20,6 +20,10 @@
 #import "KSTController.h"
 #import "KSTCandidate.h"
 
+#if GLYPHS_VERSION == 3
+typedef NSViewController<GSGlyphEditViewControllerProtocol> GSEditViewController;
+#endif
+
 static NSString * const kGlyphsHandleSizeKey = @"GSHandleSize";
 static NSString * const kGlyphsDrawOptionScaleKey = @"Scale";
 
@@ -31,6 +35,8 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 };
 
 @interface KSTController ()
+/// Returns the current Glyphs document through the public API of the active Glyphs version.
+- (nullable GSDocument *)currentFontDocument;
 /// If set, additionally accepts Control-Shift as the base modifier flags (normally only Control is used). This can be useful in cas Command-Arrow key already conflics with system commands.
 @property (atomic, assign) BOOL useAlternativeShortcuts;
 /// List of Glyphs tool class names for which the plugin is disabled.
@@ -46,7 +52,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 /// Whether travel hints are currently shown.
 @property (nonatomic, assign) BOOL travelHintsActive;
 /// Set of elements that were skipped by pressing the Command key.
-@property (nonatomic, retain) NSMutableSet<GSElement *> *skippedCandidates;
+@property (nonatomic, retain) NSMutableSet<NSObject<GSSelectableElementProtocol> *> *skippedCandidates;
 @end
 
 @implementation KSTController
@@ -123,34 +129,49 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         int hintColorId = (int)[defaults integerForKey:kHintColorKey];
         
         switch (hintColorId) {
-        case 0: self.hintColor = [NSColor systemRedColor]; break;
-        case 1: self.hintColor = [NSColor systemOrangeColor]; break;
-        case 2: self.hintColor = [NSColor systemBrownColor]; break;
-        case 3: self.hintColor = [NSColor systemYellowColor]; break;
-        case 4: self.hintColor = [NSColor systemGreenColor]; break;
-        case 7: self.hintColor = [NSColor systemBlueColor]; break;
-        case 8: self.hintColor = [NSColor systemPurpleColor]; break;
-        case 9: self.hintColor = [NSColor systemPinkColor]; break;
-        default: self.hintColor = [NSColor systemGrayColor]; break;
+        case 0: self.hintColor = NSColor.systemRedColor; break;
+        case 1: self.hintColor = NSColor.systemOrangeColor; break;
+        case 2: self.hintColor = NSColor.systemBrownColor; break;
+        case 3: self.hintColor = NSColor.systemYellowColor; break;
+        case 4: self.hintColor = NSColor.systemGreenColor; break;
+        case 7: self.hintColor = NSColor.systemBlueColor; break;
+        case 8: self.hintColor = NSColor.systemPurpleColor; break;
+        case 9: self.hintColor = NSColor.systemPinkColor; break;
+        default: self.hintColor = NSColor.systemGrayColor; break;
         }
     }
 }
 
-- (nullable NSViewController<GSGlyphEditViewControllerProtocol> *)editViewController {
+- (nullable GSEditViewController *)editViewController {
+#if GLYPHS_VERSION == 3
     return ((GSApplication *)NSApp).currentFontDocument.windowController.activeEditViewController;
+#else
+    return self.currentFontDocument.windowController.activeEditViewController;
+#endif
+}
+
+- (nullable GSDocument *)currentFontDocument {
+#if GLYPHS_VERSION == 3
+    return ((GSApplication *)NSApp).currentFontDocument;
+#else
+    return ((id<GSApplicationPluginProtocol>)NSApp).currentFontDocument;
+#endif
 }
 
 - (BOOL)travelActive {
-    GSApplication *app = NSApp;
-    GSDocument *document = app.currentFontDocument;
+    GSDocument *document = self.currentFontDocument;
     
     if (document == nil) {
         return NO;
     }
     
+#if GLYPHS_VERSION == 3
     NSWindowController<GSWindowControllerProtocol> *windowController = document.windowController;
+#else
+    GSWindowController *windowController = document.windowController;
+#endif
     
-    if (windowController == nil || [windowController.window isNotEqualTo:app.keyWindow]) {
+    if (windowController == nil || [windowController.window isNotEqualTo:NSApp.keyWindow]) {
         // Edit view must be in key window for plugin to apply
         return NO;
     }
@@ -248,9 +269,9 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 
 /// Updates the selection on the active layer to reflect the given travel direction.
 - (BOOL)travel:(KSTTravel)travel {
-    CGFloat upm = ((GSApplication *)NSApp).currentFontDocument.font.unitsPerEm;
+    CGFloat upm = self.currentFontDocument.font.unitsPerEm;
     GSLayer *layer = self.editViewController.activeLayer;
-    NSMutableOrderedSet<GSSelectableElement *> *selection = layer.selection;
+    NSOrderedSet<GSSelectableElement *> *selection = layer.selection;
     
     if (selection == nil) {
         return NO;
@@ -306,7 +327,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     for (GSPath *path in layer.paths) {
         for (GSNode *node in path.nodes) {
             for (int i = 0; i < selection.count; i++) {
-                [self evaluateCandidate:candidates[i] fromOrigin:(GSShape *)selection[i] toTarget:node atScale:scale withTravel:travel];
+                [self evaluateCandidate:candidates[i] fromOrigin:selection[i] toTarget:node atScale:scale withTravel:travel];
             }
         }
     }
@@ -317,7 +338,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
             GSAnchor *anchor = [layer.anchors objectForKey:anchorName];
             
             for (int i = 0; i < selection.count; i++) {
-                [self evaluateCandidate:candidates[i] fromOrigin:(GSShape *)selection[i] toTarget:anchor atScale:scale withTravel:travel];
+                [self evaluateCandidate:candidates[i] fromOrigin:selection[i] toTarget:anchor atScale:scale withTravel:travel];
             }
         }
     }
@@ -327,8 +348,8 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 
 /// Update the given candidate with `target` as its element if `target` matches the direction and is a better candidate element than the current one.
 - (void)evaluateCandidate:(KSTCandidate *)candidate
-               fromOrigin:(GSShape *)origin
-                 toTarget:(GSElement *)target
+               fromOrigin:(NSObject<GSSelectableElementProtocol> *)origin
+                 toTarget:(NSObject<GSSelectableElementProtocol> *)target
                   atScale:(CGFloat)scale
                withTravel:(KSTTravel)travel {
     if ([origin isEqualTo:target]) {
@@ -351,7 +372,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 /// A distance is shorter if the vertical distance is shorter, the horizontal distance is shorter, and/or if the angle between the points is acute. The vertical and horizontal offset of the points is weighted diffrently such that the primary offset is more impactful on the returned distance. The primary offset is along the travel direction; the secondary offset is orthogonal to the travel direction. For example, for a travel to the right, the *x* axis is the primary axis and the *x* offset of the points is the primary offset.
 ///
 /// See the readme for an illustration of this function.
-- (CGFloat)distanceFrom:(GSShape *)s1 to:(GSShape *)s2 atScale:(CGFloat)scale withTravel:(KSTTravel)travel {
+- (CGFloat)distanceFrom:(NSObject<GSSelectableElementProtocol> *)s1 to:(NSObject<GSSelectableElementProtocol> *)s2 atScale:(CGFloat)scale withTravel:(KSTTravel)travel {
     CGFloat x1 = s1.position.x / scale + 1;
     CGFloat y1 = s1.position.y / scale + 1;
     CGFloat x2 = s2.position.x / scale + 1;
@@ -394,8 +415,8 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
     
     if (self.showHints && self.travelHintsActive && self.travelActive) {
         CGFloat scale = [options[kGlyphsDrawOptionScaleKey] doubleValue];
-        CGFloat upm = ((GSApplication *)NSApp).currentFontDocument.font.unitsPerEm;
-        NSMutableOrderedSet<GSSelectableElement *> *selection = layer.selection;
+        CGFloat upm = self.currentFontDocument.font.unitsPerEm;
+        NSOrderedSet<GSSelectableElement *> *selection = layer.selection;
         
         NSArray<KSTCandidate *> *upTargets = [self targetsForTravel:KSTTravelUp fromSelection:selection onLayer:layer atScale:upm];
         NSArray<KSTCandidate *> *downTargets = [self targetsForTravel:KSTTravelDown fromSelection:selection onLayer:layer atScale:upm];
@@ -484,7 +505,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
 ///
 /// If no more points can be skipped, resets the cycle to the original travel candidates.
 - (void)cycleCandidates {
-    GSFont *font = ((GSApplication *)NSApp).currentFontDocument.font;
+    GSFont *font = self.currentFontDocument.font;
     
     if (font == nil) {
         return;
@@ -497,7 +518,7 @@ typedef NS_ENUM(NSUInteger, KSTTravel) {
         return;
     }
     
-    NSMutableOrderedSet<GSSelectableElement *> *selection = layer.selection;
+    NSOrderedSet<GSSelectableElement *> *selection = layer.selection;
     
     if (selection.count == 0) {
         return;

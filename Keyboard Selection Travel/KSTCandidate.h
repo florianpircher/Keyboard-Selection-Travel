@@ -24,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface KSTCandidate : NSObject
 @property CGFloat distance;
-@property (weak) GSElement * _Nullable element;
+@property (weak) NSObject<GSSelectableElementProtocol> * _Nullable element;
 @end
 
 NS_ASSUME_NONNULL_END

@@ -18,6 +18,8 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import <GlyphsCore/GlyphsCore.h>
+#if GLYPHS_VERSION == 3
 #import <GlyphsCore/GSCallbackHandler.h>
 #import <GlyphsCore/GSFont.h>
 #import <GlyphsCore/GSLayer.h>
@@ -27,6 +29,9 @@
 #import <GlyphsCore/GSWindowControllerProtocol.h>
 #import <GlyphsCore/GSGlyphViewControllerProtocol.h>
 #import <GlyphsCore/GlyphsPluginProtocol.h>
+#else
+#import <GlyphsApp/GlyphsApp.h>
+#endif
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -45,6 +50,7 @@ static NSString * const kHintColorKey = @"com.FlorianPircher.Keyboard-Selection-
 
 const NSUInteger kEventModifierKeyFlagsMask = NSEventModifierFlagShift|NSEventModifierFlagControl|NSEventModifierFlagOption|NSEventModifierFlagCommand;
 
+#if GLYPHS_VERSION == 3
 @interface GSApplication : NSApplication
 @property (weak, nonatomic, nullable) GSDocument *currentFontDocument;
 @end
@@ -53,6 +59,7 @@ const NSUInteger kEventModifierKeyFlagsMask = NSEventModifierFlagShift|NSEventMo
 @property (nonatomic, retain) GSFont *font;
 @property (weak, nonatomic, nullable) NSWindowController<GSWindowControllerProtocol> *windowController;
 @end
+#endif
 
 @interface KSTController : NSObject<GlyphsPlugin>
 @end
